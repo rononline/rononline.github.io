@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soccer Live Card preview</title>
+  <style>
+    :root {
+      --primary-text-color: #f8fafc;
+      --secondary-text-color: #9ca3af;
+      --primary-color: #0ea5e9;
+      --card-background-color: #111827;
+      --primary-background-color: #0b1020;
+      --divider-color: rgba(255,255,255,0.1);
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0b1020;
+      color: var(--primary-text-color);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 22px;
+      background: rgba(11,16,32,0.92);
+      border-bottom: 1px solid var(--divider-color);
+      backdrop-filter: blur(14px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.15;
+    }
+
+    .sub {
+      margin-top: 3px;
+      color: var(--secondary-text-color);
+      font-size: 12px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    select {
+      min-width: 132px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--divider-color);
+      background: #111827;
+      color: var(--primary-text-color);
+      padding: 0 10px;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 1640px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .note {
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(14,165,233,0.28);
+      border-radius: 10px;
+      background: rgba(14,165,233,0.08);
+      color: var(--secondary-text-color);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--divider-color);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .panel.wide {
+      grid-column: span 2;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding: 0 2px 10px;
+      border-bottom: 1px solid var(--divider-color);
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .tag {
+      color: var(--secondary-text-color);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    soccer-live-card,
+    ha-card {
+      display: block;
+    }
+
+    @media (max-width: 840px) {
+      header { align-items: flex-start; flex-direction: column; }
+      main { padding: 14px; }
+      .grid { grid-template-columns: 1fr; }
+      .panel.wide { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Soccer Live Card preview</h1>
+      <div class="sub">Local fixture page for screenshots and visual regression checks.</div>
+    </div>
+    <div class="controls">
+      <select id="skin">
+        <option value="dark">dark</option>
+        <option value="light">light</option>
+        <option value="orange">orange</option>
+        <option value="red-white">red-white</option>
+        <option value="blue-red">blue-red</option>
+        <option value="neon">neon</option>
+        <option value="gold">gold</option>
+      </select>
+      <select id="language">
+        <option value="en">English</option>
+        <option value="nl">Nederlands</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Portugues</option>
+        <option value="fr">Francais</option>
+        <option value="es">Espanol</option>
+        <option value="it">Italiano</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <div class="note">
+      This page loads <code>soccer-live-card.bundle.js</code> and uses mock Home Assistant sensor states,
+      including empty, unavailable, missing-logo and long-name edge cases.
+    </div>
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <script src="./soccer-live-card.bundle.js"></script>
+  <script>
+    const logo = (id) => `https://a.espncdn.com/i/teamlogos/soccer/500/${id}.png`;
+    const leagueLogo = "https://a.espncdn.com/i/leaguelogos/soccer/500/4.png";
+
+    const upcoming = {
+      event_id: "preview-upcoming",
+      state: "pre",
+      status: "Scheduled",
+      date: "26-06-2026 21:00",
+      league_name: "FIFA World Cup",
+      league_logo: leagueLogo,
+      home_team: "Netherlands",
+      away_team: "Tunisia",
+      home_abbrev: "NED",
+      away_abbrev: "TUN",
+      home_score: "0",
+      away_score: "0",
+      home_logo: logo(449),
+      away_logo: logo(290),
+      home_form: "WGWGW",
+      away_form: "LGDLG",
+      home_record: "0-1-0",
+      away_record: "0-0-1",
+      home_top_scorer: { short_name: "V. van Dijk", value: "1" },
+      away_top_scorer: { short_name: "E. Achouri", value: "1" },
+      venue: "NRG Stadium, Houston, Texas",
+      broadcasts: ["FOX", "Tele", "Peacock"],
+      clock: "",
+      key_events: [],
+      lineup_home: [],
+      lineup_away: [],
+      match_details: [],
+    };
+
+    const live = {
+      ...upcoming,
+      event_id: "preview-live",
+      state: "in",
+      status: "In Progress",
+      date: "20-06-2026 19:00",
+      status_detail: "62'",
+      clock: "62",
+      away_team: "Sweden",
+      away_abbrev: "SWE",
+      away_logo: logo(466),
+      away_form: "WGVWG",
+      away_record: "1-0-0",
+      away_top_scorer: { short_name: "Y. Ayari", value: "2" },
+      home_score: "2",
+      away_score: "1",
+      match_details: [
+        "Goal - 12' Cody Gakpo",
+        "Yellow Card - 31' Ludwig Augustinsson",
+        "Goal - 52' Alexander Isak",
+        "Goal - 61' Xavi Simons"
+      ],
+      key_events: [
+        { type: "goal", type_text: "Goal", clock: "12", team: "Netherlands", athletes: ["Cody Gakpo"], scoring_play: true },
+        { type: "yellow-card", type_text: "Yellow Card", clock: "31", team: "Sweden", athletes: ["Ludwig Augustinsson"] },
+        { type: "goal", type_text: "Goal", clock: "52", team: "Sweden", athletes: ["Alexander Isak"], scoring_play: true },
+        { type: "goal", type_text: "Goal", clock: "61", team: "Netherlands", athletes: ["Xavi Simons"], scoring_play: true }
+      ],
+      lineup_home: [
+        { name: "Bart Verbruggen", short_name: "B. Verbruggen", jersey: "1", position: "GK", starter: true },
+        { name: "Virgil van Dijk", short_name: "V. van Dijk", jersey: "4", position: "CB", starter: true },
+        { name: "Frenkie de Jong", short_name: "F. de Jong", jersey: "21", position: "CM", starter: true },
+        { name: "Cody Gakpo", short_name: "C. Gakpo", jersey: "11", position: "LW", starter: true }
+      ],
+      lineup_away: [
+        { name: "Robin Olsen", short_name: "R. Olsen", jersey: "1", position: "GK", starter: true },
+        { name: "Victor Lindelof", short_name: "V. Lindelof", jersey: "3", position: "CB", starter: true },
+        { name: "Emil Forsberg", short_name: "E. Forsberg", jersey: "10", position: "AM", starter: true },
+        { name: "Alexander Isak", short_name: "A. Isak", jersey: "9", position: "ST", starter: true }
+      ],
+      formation_home: "4-3-3",
+      formation_away: "4-4-2",
+      home_statistics: { possessionPct: "58%", shotsTotal: "13", shotsOnTarget: "6" },
+      away_statistics: { possessionPct: "42%", shotsTotal: "8", shotsOnTarget: "3" },
+    };
+
+    const done = {
+      ...upcoming,
+      event_id: "preview-done",
+      state: "post",
+      status: "Full Time",
+      date: "14-06-2026 21:00",
+      home_team: "Netherlands",
+      away_team: "Japan",
+      away_logo: logo(627),
+      away_abbrev: "JPN",
+      home_score: "2",
+      away_score: "2",
+    };
+
+    const longNames = {
+      ...upcoming,
+      event_id: "preview-long-names",
+      home_team: "Netherlands Under Twenty One Invitational XI",
+      away_team: "Sweden International Selection With A Very Long Name",
+      home_abbrev: "NED U21",
+      away_abbrev: "SWE INT",
+      home_logo: "",
+      away_logo: "",
+      league_name: "International Friendly Tournament With A Long Competition Name",
+      league_logo: "",
+      venue: "A Very Long Stadium Name With City And Country For Layout Checks",
+    };
+
+    const emptyAttrs = {
+      sensor_type: "team_matches_mixed",
+      api_status: "ok",
+      team_name: "No fixtures",
+      team_logo: "",
+      league_name: "Preview Empty State",
+      league_logo: "",
+      league_info: [{ name: "Preview Empty State", abbreviation: "EMPTY", logo_href: "" }],
+      matches: [],
+      previous_matches: [],
+      upcoming_matches: [],
+      total_matches: 0,
+      live_matches_count: 0,
+      upcoming_matches_count: 0,
+      finished_matches_count: 0,
+      request_count: 1,
+      last_successful_update: "22-06-2026 12:00",
+      standings_groups: [],
+      scorers: [],
+      articles: [],
+      commentary: [],
+      rounds: [],
+    };
+
+    const unavailableAttrs = {
+      ...emptyAttrs,
+      sensor_type: "team_match",
+      api_status: "error",
+      team_name: "Unavailable sensor",
+      last_error: "Preview: integration did not return data",
+    };
+
+    const attrs = {
+      sensor_type: "team_matches_mixed",
+      api_status: "ok",
+      team_name: "Netherlands",
+      team_logo: logo(449),
+      team_colors: ["f97316", "111827"],
+      league_name: "FIFA World Cup",
+      league_logo: leagueLogo,
+      league_info: [{ name: "FIFA World Cup", abbreviation: "FIFA", logo_href: leagueLogo }],
+      matches: [live, upcoming, done],
+      previous_matches: [done],
+      upcoming_matches: [upcoming],
+      total_matches: 3,
+      live_matches_count: 1,
+      upcoming_matches_count: 1,
+      finished_matches_count: 1,
+      request_count: 1,
+      last_successful_update: "22-06-2026 12:00",
+      standings_groups: [{
+        name: "Group F",
+        standings: [
+          { rank: 1, team_name: "Sweden", team_logo: logo(466), wins: 1, draws: 0, losses: 0, points: "3", goal_difference: 4, zone_color: "#22c55e" },
+          { rank: 2, team_name: "Japan", team_logo: logo(627), wins: 0, draws: 1, losses: 0, points: "1", goal_difference: 0 },
+          { rank: 3, team_name: "Netherlands", team_logo: logo(449), wins: 0, draws: 1, losses: 0, points: "1", goal_difference: 0 },
+          { rank: 4, team_name: "Tunisia", team_logo: logo(290), wins: 0, draws: 0, losses: 1, points: "0", goal_difference: -4 }
+        ]
+      }],
+      scorers: [
+        { rank: 1, player: "Virgil van Dijk", short_name: "V. van Dijk", team_name: "Netherlands", team_logo: logo(449), goals: 1 },
+        { rank: 2, player: "Yasin Ayari", short_name: "Y. Ayari", team_name: "Sweden", team_logo: logo(466), goals: 2 }
+      ],
+      articles: [
+        { headline: "Netherlands prepare for Sweden", description: "Fixture data for the local preview page.", published: "2026-06-22T10:00:00Z", link: "#" },
+        { headline: "Group F remains open", description: "Standings, ticker and match cards use the same fixture.", published: "2026-06-21T18:30:00Z", link: "#" }
+      ],
+      commentary: [
+        { clock: "61", type: "goal", text: "Goal by Xavi Simons", home_score: 2, away_score: 1 },
+        { clock: "52", type: "goal", text: "Alexander Isak equalises", home_score: 1, away_score: 1 },
+        { clock: "31", type: "yellow-card", text: "Yellow card for Sweden" }
+      ],
+      rounds: [{
+        name: "Final",
+        size: 1,
+        ties: [{
+          team_a: { name: "Netherlands", logo: logo(449), abbrev: "NED" },
+          team_b: { name: "Tunisia", logo: logo(290), abbrev: "TUN" },
+          single: upcoming,
+          winner_team: "",
+          aggregate: "",
+          completed: false
+        }]
+      }]
+    };
+
+    const longNameAttrs = {
+      ...attrs,
+      team_name: "Netherlands Under Twenty One Invitational XI",
+      team_logo: "",
+      league_name: longNames.league_name,
+      league_logo: "",
+      league_info: [{ name: longNames.league_name, abbreviation: "LONG", logo_href: "" }],
+      matches: [longNames],
+      previous_matches: [],
+      upcoming_matches: [longNames],
+      total_matches: 1,
+      live_matches_count: 0,
+      upcoming_matches_count: 1,
+      finished_matches_count: 0,
+    };
+
+    const noLiveAttrs = {
+      ...attrs,
+      matches: [upcoming, done],
+      live_matches_count: 0,
+      upcoming_matches_count: 1,
+      finished_matches_count: 1,
+    };
+
+    const states = {
+      "sensor.preview_team": { state: "Netherlands", attributes: attrs },
+      "sensor.preview_matches": { state: "3", attributes: attrs },
+      "sensor.preview_standings": { state: "FIFA World Cup", attributes: attrs },
+      "sensor.preview_scorers": { state: "FIFA World Cup", attributes: attrs },
+      "sensor.preview_news": { state: "2", attributes: attrs },
+      "sensor.preview_bracket": { state: "FIFA World Cup", attributes: attrs },
+      "sensor.preview_commentary": { state: "live", attributes: attrs },
+      "sensor.preview_diagnostics": { state: "ok", attributes: attrs },
+      "sensor.preview_empty": { state: "0", attributes: emptyAttrs },
+      "sensor.preview_unavailable": { state: "unavailable", attributes: unavailableAttrs },
+      "sensor.preview_missing_logos": { state: "long names", attributes: longNameAttrs },
+      "sensor.preview_live_empty": { state: "2", attributes: noLiveAttrs }
+    };
+
+    const cards = [
+      ["Team", "team", { entity: "sensor.preview_team", show_previous_matches: true, show_form_trend: true }],
+      ["Countdown", "countdown", { entity: "sensor.preview_team" }],
+      ["Live Match", "live-match", { entity: "sensor.preview_matches" }],
+      ["Match Center", "match-center", { entity: "sensor.preview_team" }, "wide"],
+      ["Matches", "matches", { entity: "sensor.preview_matches", max_events_visible: 5 }],
+      ["Ticker", "ticker", { entity: "sensor.preview_matches", auto_scroll: false }],
+      ["Season Overview", "season-overview", { entity: "sensor.preview_matches" }],
+      ["Team Competitions", "team-competitions", { entity: "sensor.preview_matches" }, "wide"],
+      ["Team Form", "team-form", { entity: "sensor.preview_team", team_name: "Netherlands" }],
+      ["Multi Team", "multi-team", { entities: ["sensor.preview_team", "sensor.preview_matches"], title: "My teams" }],
+      ["Standings", "standings", { entity: "sensor.preview_standings", max_teams_visible: 4 }],
+      ["Mini Standings", "mini-standings", { entity: "sensor.preview_standings", max_rows: 4, highlight_team: "Netherlands" }],
+      ["Top Scorers", "scorers", { entity: "sensor.preview_scorers" }],
+      ["Lineup", "lineup", { entity: "sensor.preview_team" }, "wide"],
+      ["Timeline", "timeline", { entity: "sensor.preview_team" }],
+      ["Live Commentary", "live-commentary", { entity: "sensor.preview_commentary" }],
+      ["News", "news", { entity: "sensor.preview_news" }],
+      ["Bracket", "bracket", { entity: "sensor.preview_bracket", style: "list" }, "wide"],
+      ["Diagnostics", "diagnostics", { entity: "sensor.preview_diagnostics" }],
+      ["Team · long names / no logos", "team", { entity: "sensor.preview_missing_logos" }, "wide"],
+      ["Matches · empty", "matches", { entity: "sensor.preview_empty" }],
+      ["Season Overview · empty", "season-overview", { entity: "sensor.preview_empty" }],
+      ["Ticker · no live matches", "ticker", { entity: "sensor.preview_live_empty", filter: "live", hide_when_empty: false }],
+      ["Diagnostics · unavailable", "diagnostics", { entity: "sensor.preview_unavailable" }]
+    ];
+
+    const hass = {
+      states,
+      language: "en",
+      locale: { language: "en" },
+      connection: { subscribeEvents: async () => () => {} },
+      callService: () => Promise.resolve(),
+    };
+
+    function renderPreview() {
+      const skin = document.getElementById("skin").value;
+      const language = document.getElementById("language").value;
+      hass.language = language;
+      hass.locale.language = language;
+
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      for (const [title, cardType, config, width] of cards) {
+        const panel = document.createElement("section");
+        panel.className = `panel ${width || ""}`;
+        panel.innerHTML = `
+          <div class="panel-title">
+            <h2>${title}</h2>
+            <span class="tag">${cardType}</span>
+          </div>
+        `;
+        const card = document.createElement("soccer-live-card");
+        card.setConfig({ type: "custom:soccer-live-card", card_type: cardType, skin, language, ...config });
+        card.hass = hass;
+        panel.appendChild(card);
+        grid.appendChild(panel);
+      }
+    }
+
+    document.getElementById("skin").addEventListener("change", renderPreview);
+    document.getElementById("language").addEventListener("change", renderPreview);
+    renderPreview();
+  </script>
+</body>
+</html>
